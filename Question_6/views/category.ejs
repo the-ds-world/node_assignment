@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Category</title>
+    <%- include('includes/styles') %>
+    <style>
+        body{background-image: linear-gradient(to right, #ff0051, #ff2e6a, #fc518d, #ff8fba, #ffb2c8);
+            color: white;}
+        .bo{border: 2px solid white;
+        color: white;}
+    </style>
+</head>
+<body>
+    <%- include('includes/head') %>
+    <div class="container mt-5">
+        <%
+            if(error)
+            {%>
+                <p class="text-danger"><%= error %></p>
+            <%}
+        %>
+        <form action="/category/add" method="post" enctype="multipart/form-data">
+            <input type="hidden" name="id">
+            <div class="form-group">
+                <label for="name" class="form-label">Name</label>
+                <input type="text" name="name" id="name" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="image" class="form-label">Image</label>
+                <input type="file" name="image" id="image" class="form-control" accept="image/*">
+            </div>
+            <div class="form-group mt-5">
+                <button type="submit" class="btn btn-primary">Save</button>
+            </div>
+        </form>
+        <div class="row">
+            <%
+                categories.forEach(element => {%>
+                    <div class="col-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title">
+                                    <%= element.name %>
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <img src="/category/<%= element.image %>" class="w-100" alt="">    
+                            </div>
+                            <div class="card-footer">
+                                <button data-id="<%= element._id %>" class="edit btn btn-outline-success">Edit</button>
+                                <button data-id="<%= element._id %>" class="delete btn btn-outline-danger">Delete</button>
+                            </div>
+                        </div>
+                    </div>    
+                <%
+                });
+            %>
+        </div>
+    </div>
+    <%- include('includes/scripts') %>
+    <script>
+        $(".edit").click(function(){
+            const id = $(this).data('id');
+            fetch('/category/get/' + id)
+            .then((response)=>{
+                return response.json();
+            })
+            .then((data)=>{
+                $("form").prop('action', '/category/update');
+                $("#name").val(data.name)
+                $("input[name='id']").val(data._id)
+            })
+            .catch((err)=>{
+                console.log(err);
+            })
+        })
+
+        $(".delete").click(function(){
+            const id = $(this).data('id');
+            fetch('/category/delete/' + id)
+            .then((response)=>{
+                window.location.reload();
+            })
+            .catch((err)=>{
+                console.log(err);
+            })
+        })
+    </script>
+</body>
+</html>

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product</title>
+    <%- include('includes/styles') %>
+    <style>
+        body{background-image: linear-gradient(to right, #ff0051, #ff2e6a, #fc518d, #ff8fba, #ffb2c8);
+            color: white;}
+        .bo{border: 2px solid white;
+        color: white;}
+    </style>
+</head>
+<body>
+    <%- include('includes/head') %>
+    <div class="container mt-5">
+        <%
+            if(error)
+            {%>
+                <p class="text-danger"><%= error %></p>
+            <%}
+        %>
+        <form action="/product/add" method="post" enctype="multipart/form-data">
+            <input type="hidden" name="id">
+            <div class="form-group">
+                <label for="name" class="form-label">Name</label>
+                <input type="text" name="name" id="name" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="price" class="form-label">Price</label>
+                <input type="number" name="price" id="price" min="0" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="quantity" class="form-label">Quantity</label>
+                <input type="number" name="quantity" id="quantity" min="0" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="sku" class="form-label">SKU</label>
+                <input type="text" name="sku" id="sku" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="image" class="form-label">Image</label>
+                <input type="file" multiple name="image" id="image" class="form-control" accept="image/*">
+            </div>
+            <div class="form-group">
+                <label for="category_id" class="form-label">Category</label>
+                <select name="category_id" id="category_id" class="form-control">
+                    <%
+                        if(category)
+                        {
+                            category.forEach(element => {%>
+                                <option value="<%= element._id %>"><%= element.name %></option>
+                            <%});
+                        }
+                    %>
+                </select>
+            </div>
+            <div class="form-group mt-5">
+                <button type="submit" class="btn btn-primary">Save</button>
+            </div>
+        </form>
+
+        <div class="row">
+            <%
+                if(products)
+                {
+                    products.forEach(element => {%>
+                       <div class="col-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title"><%= element.name %></h5>
+                                </div>
+                                <div class="card-body">
+                                    <div id="carouselExample<%= element._id %>" class="carousel slide">
+                                        <div class="carousel-inner">
+                                            <%
+                                            element.images.forEach((ele, index) => {%>
+                                                <div class="carousel-item <%= index === 0 ? 'active' : '' %>">
+                                                    <img src="/products/<%= ele.file %>" class="d-block w-100" alt="...">
+                                                </div>
+                                                <%});
+                                            %>
+                                        </div>
+                                        <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample<%= element._id %>" data-bs-slide="prev">
+                                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                            <span class="visually-hidden">Previous</span>
+                                        </button>
+                                        <button class="carousel-control-next" type="button" data-bs-target="#carouselExample<%= element._id %>" data-bs-slide="next">
+                                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                            <span class="visually-hidden">Next</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="card-footer">
+                                    <p><strong>Price : </strong><%= element.price %> $</p>
+                                    <p><strong>SKU : </strong><%= element.sku %></p>
+
+                                    <div class="mt-2">
+                                        <button data-id="<%= element._id %>" class="edit btn btn-outline-success">Edit</button>
+                                        <button data-id="<%= element._id %>" class="delete btn btn-outline-danger">Delete</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div> 
+                    <%});
+                }
+            %>
+        </div>
+    </div>
+    <%- include('includes/scripts') %>
+
+    <script>
+        $('.edit').click(function(){
+            const id = $(this).data('id');
+            fetch('/product/get/' + id)
+            .then((response)=>{
+                return response.json();
+            })
+            .then((data)=>{
+                $("input[name='id']").val(data._id)
+                $("#name").val(data.name)
+                $("#price").val(data.price.$numberDecimal)
+                $("#quantity").val(data.quantity)
+                $("#sku").val(data.sku)
+                $("#category_id").find('option[value="'+ data.category_id._id +'"]').prop('selected', true)
+
+                $("form").attr('action', '/product/update');
+            })
+            .catch((err)=>{
+                console.log(err);
+            })
+        })
+
+        $('.delete').click(function(){
+            const id = $(this).data('id');
+            fetch('/product/delete/' + id)
+            .then((response)=>{
+                window.location.reload();
+            })
+            .catch((err)=>{
+                console.log(err);
+            })
+        });
+    </script>
+</body>
+</html>
